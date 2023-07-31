@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Lato", sans-serif;
+            min-height: 100vh;
+            min-width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+        }
+
+        #name-input {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #stream-chat {
+            margin: 10px;
+            min-width: 500px;
+            max-width: 600px;
+            width: 80%;
+            min-height: 500px;
+            max-height: 600px;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        #stream-chat h1 {
+            background: #2b2b2b;
+            color: #eeeeee;
+            text-align: center;
+            font-weight: 300;
+            padding: 1rem;
+        }
+
+        #input-area {
+            display: flex;
+            min-height: 175px;
+            flex-direction: column;
+            background: #1d1d1d;
+            padding: 15px;
+        }
+
+        #send {
+            align-self: flex-end;
+            padding: 8px 15px;
+            margin: 3px;
+            background: #632f9f;
+            border: none;
+            color: #f8ebec;
+            font-weight: 900;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            box-shadow: 0 0 10px 0px #4a2378;
+        }
+
+        #input {
+            flex-grow: 1;
+            border: 5px solid #282828;
+            flex-grow: 1;
+            background: #090909;
+            color: #919090;
+            margin-bottom: 0.7em;
+            resize: none;
+        }
+
+        #input:focus {
+            outline: none;
+        }
+
+        #messages {
+            min-height: 500px;
+            background: linear-gradient(to bottom, #2b2b2b, #1d1d1d);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding-left: 12px;
+        }
+
+        #messages .even {
+            background: #171717;
+        }
+
+        #messages .odd {
+            background: #111111;
+        }
+
+        #messages .message {
+            padding: 3px 5px;
+        }
+
+        #messages .message .timestamp {
+            color: #626a6f;
+            margin-right: 0.1em;
+        }
+
+        #messages .message .name {
+            font-weight: 900;
+        }
+
+        #messages .message .text {
+            margin-left: 0.1em;
+            color: #bbb7ab;
+        }
+
+        .overflow {
+            overflow-y: scroll;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            border-radius: 10px;
+            background: #5e5e5e;
+        }
+
+        ::-webkit-scrollbar,
+        ::-webkit-scrollbar-button,
+        ::-webkit-scrollbar-track,
+        ::-webkit-scrollbar-track-piece,
+        ::-webkit-scrollbar-corner,
+        ::-webkit-resizer {
+            background: #2b2b2b;
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f4f3f0;
+            min-height: 100px;
+            width: 100vw;
+        }
+
+        .header h1 {
+            color: #404040;
+            text-align: center;
+        }
+
+        .header p {
+            color: #555555;
+        }
+
+        #description {
+            background: #404040;
+            color: #999999;
+            min-height: 100px;
+            width: 100vw;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        #description a {
+            color: #bfbfbf;
+        }
+
+        #description a:hover {
+            color: #f2f2f2;
+        }
+    </style>
+    <title>Chat</title>
+</head>
+<body>
+    <div class='header'>
+        <h1>WebSockets Demo</h1>
+        <p>Open multiple tabs... and talk to yourself! Woo Fun!</p>
+    </div>
+
+    <main id='stream-chat'>
+
+        <h1>Chat</h1>
+
+        <div class='overflow'>
+            <div id='messages'></div>
+        </div>
+
+
+        <div id='input-area'>
+            <textarea id='input' type='text' disabled></textarea>
+            <button id='send'>Choose Name</button>
+        </div>
+
+
+    </main>
+
+    <div id='description'>
+        <div class='des-title'>
+            WebSockets Demo
+        </div>
+        <div class='des-info'>
+            <div>
+                WebSockets server hosted at <a href='https://stream-chat-demo.herokuapp.com' target="_blank">stream-chat-demo.herokuapp.com</a>.
+            </div>
+            <div>
+                See the server code over on <a href="https://github.com/lioneltay/WebSocketDemoServer" target="_blank">GitHub</a>.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var connection = new WebSocket('ws://localhost:8000/ws/chat')
+
+        const input = document.querySelector('#input')
+        const messages = document.querySelector('#messages')
+        const overflow = document.querySelector('.overflow')
+        const nameInput = document.querySelector('#name-input')
+        const sendButton = document.querySelector('#send')
+
+        let userName, userColor
+        let oddMessage = true
+        let autoScroll = true
+
+        // Respond to new connection
+        connection.addEventListener('open', (e) => {
+
+        })
+
+        // Respond to WebSocket messages
+        connection.addEventListener('message', (message) => {
+            let resData
+
+            try {
+                resData = JSON.parse(message.data)
+            } catch (error) {
+                console.warn(error)
+                console.warn('The message does not seem to be valid JSON.')
+            }
+
+            // Once message is received allow user to send another message
+            input.removeAttribute('disabled')
+            input.focus()
+
+            if (resData.type === 'history') {
+                resData.data.forEach(message => addMessage(message))
+            } else if (resData.type === 'color') {
+                userColor = resData.data
+            } else if (resData.type === 'message') {
+                addMessage(resData.data)
+            }
+
+            if (autoScroll) {
+                overflow.scrollTop = overflow.scrollHeight - overflow.clientHeight;
+            }
+        })
+
+        // Respond to user input
+        function sendMessage(message) {
+            if (!message) return
+
+            input.setAttribute('disabled', true)
+            input.value = ''
+            connection.send(message)
+
+            // The first message will be the user's name
+            if (!userName) {
+                userName = message
+                sendButton.innerHTML = 'Chat'
+            }
+        }
+
+        input.addEventListener('keydown', (e) => {
+            if (e.keyCode === 13) {
+                sendMessage(e.target.value)
+            }
+        })
+
+        sendButton.addEventListener('click', (e) => {
+            sendMessage(input.value)
+        })
+
+        // Add a message to message to DOM
+        function addMessage(data) {
+            const newMsg = document.createElement('div')
+
+            const time = timeString(data.timestamp)
+            const messageParity = addMessage.odd ? 'odd' : 'even'
+            addMessage.odd = !addMessage.odd
+            newMsg.setAttribute('class', `${messageParity} message`)
+
+            newMsg.innerHTML = `
+                    <span class='timestamp'>${time}</span>
+                    <span class='name' style='color: ${data.color}'>${data.author}:</span>
+                    <span class='text'>${data.text}</span>
+                `
+            //	messages.insertBefore(newMsg, messages.childNodes[0])
+            messages.appendChild(newMsg)
+        }
+
+        addMessage.odd = true
+
+
+        overflow.addEventListener('scroll', (e) => {
+            autoScroll = false
+            const overflow = e.target
+            if (overflow.scrollTop === overflow.scrollHeight - overflow.clientHeight) {
+                autoScroll = true
+            }
+        })
+
+
+        // Helper functions
+        function timeString(timestamp) {
+            const date = new Date(timestamp)
+            const hour = date.getHours() % 12
+            let min = date.getMinutes()
+            min = min < 10 ? `0${min}` : min
+
+            return `${hour}:${min}`
+        }
+    </script>
+</body>
+</html>
