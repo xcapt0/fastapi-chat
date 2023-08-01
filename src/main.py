@@ -1,9 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
-from redis import asyncio as aioredis
+from starlette.responses import RedirectResponse
 
 from auth.router import router as auth_router
 from chat.router import router as chat_router
@@ -26,3 +24,8 @@ app.add_middleware(
     allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin",
                    "Authorization"],
 )
+
+
+@app.exception_handler(HTTPException)
+def auth_exception_handler(request: Request, exc: HTTPException):
+    return RedirectResponse(url='/chat/login')

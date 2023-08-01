@@ -1,0 +1,9 @@
+{% extends 'login_base.html' %}
+
+{% block title %} Login Page {% endblock %}
+
+{% block script_form %}
+    <script>
+        init_auth_form('http://localhost:8000/login')
+    </script>
+{% endblock %}
