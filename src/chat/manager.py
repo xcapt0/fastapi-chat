@@ -1,8 +1,7 @@
 import json
-from datetime import datetime
 from starlette.websockets import WebSocketDisconnect, WebSocket
 
-from chat.utils import generate_color
+from .schema import ChatDataSchema, ChatSchema
 
 
 class WebSocketManager:
@@ -10,15 +9,8 @@ class WebSocketManager:
         self.connected_clients = set()
 
     def create_response(self, author, text):
-        return {
-            "type": "message",
-            "data": {
-                "timestamp": datetime.now().timestamp(),
-                "color": generate_color(),
-                "author": author,
-                "text": text
-            }
-        }
+        chat_data = ChatDataSchema(author=author, text=text)
+        return ChatSchema(data=chat_data).dict()
 
     async def connect_websocket(self, websocket: WebSocket):
         await websocket.accept()
