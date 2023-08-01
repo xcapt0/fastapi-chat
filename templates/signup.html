@@ -2,8 +2,35 @@
 
 {% block title %} Register Page {% endblock %}
 
+{% block auth_link %}
+    <div style="padding-bottom: 10px;font-size: 10px"><a href="/chat/login">Войти</a></div>
+{% endblock %}
+
+{% block input %}
+    <div class="input-group">
+        <label class="input-group__label" for="email">
+            Username <span class="input-group__required">*</span>
+        </label>
+        <input type="text" class="input-group__field js-username" name="username" id="username"/>
+    </div>
+{% endblock %}
+
 {% block script_form %}
     <script>
-        init_auth_form('http://localhost:8000/register')
+        function get_login_data() {
+            const username = document.querySelector('.js-username').value;
+            const email = document.querySelector('.js-email').value;
+            const password = document.querySelector('.js-password').value;
+
+            data = {
+                username: username,
+                email: email,
+                password: password
+            }
+
+            return JSON.stringify(data)
+        }
+
+        send_form('http://localhost:8000/auth/register', 'application/json', 'signup');
     </script>
 {% endblock %}

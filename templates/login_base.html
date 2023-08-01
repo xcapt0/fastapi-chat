@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <style>@import url(https://fonts.googleapis.com/css?family=Montserrat:600);*{box-sizing:border-box;padding:0;margin:0}html{font-weight:600;font-size:16px;font-family:Montserrat,sans-serif}.wrapper{background:#f1f1f1;height:100vh}.wrapper--centered{align-items:center;display:flex;justify-content:center}.box{background:#fff;border:1px solid #eaeaea;border-radius:5px;padding:24px}.box--login{width:350px}.input-group{margin-bottom:16px}.input-group__label{display:block;margin-bottom:8px}.input-group__required{color:#c0392b}.input-group__field{border:1px solid #eaeaea;border-radius:5px;height:35px;padding-left:8px;padding-right:8px;width:100%}.btn{background:0 0;border:0;width:100%;transition:background .2s}.btn--large{height:40px;font-size:1rem}.btn--primary{background:#3498db;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.1)}.btn--primary:active,.btn--primary:focus,.btn--primary:hover{background:#2980b9}</style>
-    {% block title %} {% endblock title %}
+    <title>{% block title %} {% endblock %}</title>
 </head>
 <body>
+    {% if request.query_params._dict.get('success') %}
+        <div class="wrapper--centered success-message"><p style="font-size: 20px">Успешно зарегистрирован</p></div>
+    {% endif %}
+
     <div class="wrapper wrapper--centered">
         <form class="box box--login js-login-form">
+            {% block input %} {% endblock %}
             <div class="input-group">
                 <label class="input-group__label" for="email">
                     E-mail <span class="input-group__required">*</span>
@@ -20,38 +25,40 @@
                 </label>
                 <input type="password" class="input-group__field js-password" name="password" id="password"/>
             </div>
+            {% block auth_link %} {% endblock %}
             <button class="btn btn--large btn--primary" type="submit">Sign in</button>
         </form>
     </div>
 
     <script>
-        function init_auth_form(url) {
+        function send_form(loginUrl, contentType='application/json', origin_path=undefined) {
             const loginForm = document.querySelector('.js-login-form');
 
             loginForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
-
-                const email = document.querySelector('.js-email').value;
-                const password = document.querySelector('.js-password').value;
-
-                const loginUrl = url;
-                const loginData = {
-                    email: email,
-                    password: password,
-                };
+                const loginData = get_login_data();
 
                 try {
                     const loginResponse = await fetch(loginUrl, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Content-Type': contentType,
+                            'Cache': 'no-cache'
                         },
-                        body: JSON.stringify(loginData),
+                        body: loginData,
+                        withCredentials: true
                     });
 
-                    if (loginResponse.ok) {
-                        console.log('Login successful');
-                    } else {
+                    console.log(loginResponse.ok)
+
+                    if (loginResponse.ok && origin_path == 'signup') {
+                        window.location.href = '/chat/login?success=true'
+                    }
+                    else if (loginResponse.ok) {
+                        window.location.href = '/chat'
+                    }
+                    else {
                         console.log('Login failed');
                     }
                 } catch (error) {

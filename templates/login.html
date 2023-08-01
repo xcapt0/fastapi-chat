@@ -2,8 +2,28 @@
 
 {% block title %} Login Page {% endblock %}
 
+{% block auth_link %}
+    <div style="padding-bottom: 10px;font-size: 10px"><a href="/chat/signup">Регистрация</a></div>
+{% endblock %}
+
 {% block script_form %}
     <script>
-        init_auth_form('http://localhost:8000/login')
+        function get_login_data() {
+            const email = document.querySelector('.js-email').value;
+            const password = document.querySelector('.js-password').value;
+
+            data = {
+                username: email,
+                password: password,
+                grant_type: "",
+                scope: "",
+                client_id: "",
+                client_secret: ""
+            }
+
+            return new URLSearchParams(data).toString()
+        }
+
+        send_form('http://localhost:8000/auth/login', 'application/x-www-form-urlencoded')
     </script>
 {% endblock %}
