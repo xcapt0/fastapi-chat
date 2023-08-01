@@ -1,5 +1,5 @@
 import json
-from starlette.websockets import WebSocketDisconnect, WebSocket
+from starlette.websockets import WebSocket
 
 from .schema import ChatDataSchema, ChatSchema
 
@@ -8,26 +8,26 @@ class WebSocketManager:
     def __init__(self):
         self.connected_clients = set()
 
-    def create_response(self, author, text):
-        chat_data = ChatDataSchema(author=author, text=text)
-        return ChatSchema(data=chat_data).dict()
-
-    async def connect_websocket(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.connected_clients.add(websocket)
+        await self.broadcast("Client connected to the chat")
 
-        response = self.create_response("Anonymous", "Connected")
+    async def disconnect(self, websocket: WebSocket):
+        self.connected_clients.remove(websocket)
+        await self.broadcast(f"Client bla left the chat")
+
+    async def send(self, websocket: WebSocket, username: str, message: str):
+        response = self.create_response(username, message)
         await websocket.send_text(json.dumps(response))
 
-        try:
-            while True:
-                data = await websocket.receive_text()
+    async def broadcast(self, message: str):
+        for connection in self.connected_clients:
+            await self.send(connection, "Anonymous", message)
 
-                for client in self.connected_clients:
-                    response = self.create_response("bla", data)
-                    await client.send_text(json.dumps(response))
-        except WebSocketDisconnect:
-            self.connected_clients.remove(websocket)
+    @staticmethod
+    def create_response(author, text):
+        return ChatSchema(data=ChatDataSchema(author=author, text=text)).dict()
 
 
 websocket_manager = WebSocketManager()
