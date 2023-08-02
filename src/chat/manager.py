@@ -1,33 +1,42 @@
 import json
+from typing import Dict
+
 from starlette.websockets import WebSocket
 
 from .schema import ChatDataSchema, ChatSchema
+from .utils import generate_color
 
 
 class WebSocketManager:
     def __init__(self):
-        self.connected_clients = set()
+        self.connected_clients: Dict[WebSocket, dict] = {}
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket, user: dict):
         await websocket.accept()
-        self.connected_clients.add(websocket)
-        await self.broadcast("Client connected to the chat")
+
+        user['color'] = generate_color()
+        self.connected_clients[websocket] = user
+        await self.broadcast(websocket, f"{user['username']} connected to the chat")
 
     async def disconnect(self, websocket: WebSocket):
-        self.connected_clients.remove(websocket)
-        await self.broadcast(f"Client bla left the chat")
+        user = self.connected_clients.pop(websocket)
 
-    async def send(self, websocket: WebSocket, username: str, message: str):
-        response = self.create_response(username, message)
+        if user:
+            await self.broadcast(websocket, f"{user['username']} bla left the chat")
+
+    async def send(self, websocket: WebSocket, message: str, user: dict):
+        response = self.create_response(user, message)
         await websocket.send_text(json.dumps(response))
 
-    async def broadcast(self, message: str):
+    async def broadcast(self, websocket: WebSocket, message: str):
+        user = self.connected_clients[websocket]
+
         for connection in self.connected_clients:
-            await self.send(connection, "Anonymous", message)
+            await self.send(connection, message, user)
 
     @staticmethod
-    def create_response(author, text):
-        return ChatSchema(data=ChatDataSchema(author=author, text=text)).dict()
+    def create_response(user, text):
+        return ChatSchema(data=ChatDataSchema(author=user["username"], text=text, color=user["color"])).dict()
 
 
 websocket_manager = WebSocketManager()

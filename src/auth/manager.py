@@ -1,11 +1,8 @@
-from typing import Optional
-
-from fastapi import Depends, Request, Response
+from fastapi import Depends
 from fastapi_users import BaseUserManager, IntegerIDMixin
-from starlette.responses import JSONResponse, RedirectResponse
 
 from .models import User
-from .utils import get_user_db, get_jwt_strategy
+from .utils import get_user_db
 from config import SECRET_AUTH
 
 

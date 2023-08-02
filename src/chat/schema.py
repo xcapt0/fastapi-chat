@@ -1,12 +1,10 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
 
-from .utils import generate_color
-
 
 class ChatDataSchema(BaseModel):
     timestamp: float = Field(default_factory=lambda: datetime.now().timestamp())
-    color: str = Field(default_factory=generate_color)
+    color: str
     author: str
     text: str
 

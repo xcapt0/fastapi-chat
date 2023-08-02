@@ -1,10 +1,15 @@
-from fastapi import APIRouter, WebSocket, Request, Depends
+import json
+
+from fastapi import APIRouter, WebSocket, Request, Depends, Cookie
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from starlette.websockets import WebSocketDisconnect
+from typing import Annotated
 
-from auth.base_config import current_user
+from auth.base_config import current_user, auth_backend
 from auth.models import User
+from auth.schemas import UserRead
+from auth.utils import get_jwt_strategy
 from .manager import websocket_manager
 
 
@@ -28,17 +33,20 @@ async def signup_page(request: Request):
 
 @router.get("/", response_class=HTMLResponse)
 async def websocket_chat(request: Request, user: User = Depends(current_user)):
-    print('USER: ', user.id)
-    return templates.TemplateResponse("index.html", {"request": request})
+    response = templates.TemplateResponse("index.html", {"request": request})
+    user_data = UserRead.from_orm(user).dict()
+    response.set_cookie('user', json.dumps(user_data))
+    return response
 
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket_manager.connect(websocket)
+    user = json.loads(websocket.cookies.get('user'))
+    await websocket_manager.connect(websocket, user)
 
     try:
         while True:
             message = await websocket.receive_text()
-            await websocket_manager.broadcast(message)
+            await websocket_manager.broadcast(websocket, message)
     except WebSocketDisconnect:
         await websocket_manager.disconnect(websocket)
