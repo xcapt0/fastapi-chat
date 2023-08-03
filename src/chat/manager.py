@@ -53,8 +53,8 @@ class WebSocketManager:
             await self.send(connection, message, user)
 
     async def send(self, websocket: WebSocket, message: str, user: dict):
-        response = self.create_response(user, message)
-        await websocket.send_text(json.dumps(response))
+        response_data = self.create_response_data(user, message)
+        await websocket.send_text(json.dumps(response_data))
 
     async def load_history(self, websocket: WebSocket):
         history = await self.history.get_list(self.unique_id)
@@ -63,7 +63,7 @@ class WebSocketManager:
             await self.send(websocket, user['message'], user)
 
     @staticmethod
-    def create_response(user, text):
+    def create_response_data(user, text):
         return ChatSchema(data=ChatDataSchema(author=user["username"], text=text, color=user["color"])).dict()
 
 
