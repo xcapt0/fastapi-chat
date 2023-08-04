@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
@@ -26,5 +27,8 @@ app.add_middleware(
 
 
 @app.exception_handler(HTTPException)
-def auth_exception_handler(request: Request, exc: HTTPException):
-    return RedirectResponse(url='/chat/login')
+async def auth_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code == 401:
+        return RedirectResponse(url='/chat/login')
+
+    return await http_exception_handler(request, exc)

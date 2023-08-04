@@ -1,6 +1,6 @@
 import json
 
-from fastapi import APIRouter, WebSocket, Request, Depends, Cookie
+from fastapi import APIRouter, WebSocket, Request, Depends, Cookie, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from starlette.websockets import WebSocketDisconnect
