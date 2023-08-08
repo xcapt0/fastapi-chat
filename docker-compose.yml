@@ -12,6 +12,8 @@ services:
   redis:
     image: redis:7
     container_name: db_redis
+    ports:
+      - "6379:6379"
 
   app:
     build:

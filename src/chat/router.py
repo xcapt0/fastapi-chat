@@ -1,15 +1,13 @@
 import json
 
-from fastapi import APIRouter, WebSocket, Request, Depends, Cookie, HTTPException
+from fastapi import APIRouter, WebSocket, Request, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from starlette.websockets import WebSocketDisconnect
-from typing import Annotated
 
-from auth.base_config import current_user, auth_backend
+from auth.base_config import current_user
 from auth.models import User
 from auth.schemas import UserRead
-from auth.utils import get_jwt_strategy
 from .manager import websocket_manager
 
 
@@ -41,7 +39,12 @@ async def websocket_chat(request: Request, user: User = Depends(current_user)):
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    user = json.loads(websocket.cookies.get('user'))
+    user_cookie = websocket.cookies.get('user')
+
+    if user_cookie is None:
+        raise WebSocketDisconnect(reason="Unauthorized")
+
+    user = json.loads(user_cookie)
     await websocket_manager.connect(websocket, user)
 
     try:

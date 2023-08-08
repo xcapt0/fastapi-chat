@@ -1,6 +1,6 @@
 import asyncio
+import json
 from typing import AsyncGenerator
-
 import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
@@ -55,3 +55,12 @@ client = TestClient(app)
 async def ac() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(app=app, base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture(scope="module")
+def ws_client():
+    user = {"username": "Test"}
+    headers = {"Cookie": f"user={json.dumps(user)}"}
+
+    with client.websocket_connect("/chat/ws", headers=headers) as websocket:
+        yield websocket
