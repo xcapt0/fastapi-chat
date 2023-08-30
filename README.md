@@ -1,7 +1,7 @@
 # FastAPI WebSocket Chat
 
 
-https://github.com/xcapt0/fastapi-chat/assets/video.mp4
+https://github.com/xcapt0/fastapi-chat/assets/70326958/341fa448-6e35-410d-853a-929c7b059790
 
 
 ## 🛠️ Installation
